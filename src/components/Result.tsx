@@ -20,7 +20,8 @@ const Result = () => {
   const loacation = useLocation();
   const queryes = useLocation().search.match(/(?<=\w\=)\w*/g);
   const page = queryes ? Number(queryes[0]) : 1;
-  const details = queryes ? queryes[1] : '';
+  const countItems = queryes ? Number(queryes[1]) : 6;
+  const details = queryes ? queryes[2] : '';
   const search = useParams().query;
 
   const [areBooksLoading, setAreBooksLoading] = useState(false);
@@ -28,17 +29,16 @@ const Result = () => {
   const [Books, setBooks] = useState<book[]>([]);
   const [Details, setDetails] = useState<details>();
 
-  const getData = async (search = '*', page = 1) => {
-    const res = await axios.get(
-      `https://openlibrary.org/search.json?q=${decodeURI(
-        search
-      )}&limit=6&page=${page || 1}`
-    );
-    const data = res.data.docs;
-    return data;
-  };
-
   useEffect(() => {
+    const getData = async (search = '*', page = 1) => {
+      const res = await axios.get(
+        `https://openlibrary.org/search.json?q=${decodeURI(search)}&limit=${
+          countItems >= 1 ? countItems : 1
+        }&page=${page || 1}`
+      );
+      const data = res.data.docs;
+      return data;
+    };
     const searchBooksAndDetails = async () => {
       setAreBooksLoading(true);
       const data = await getData(search, page);
@@ -71,7 +71,7 @@ const Result = () => {
       }
     };
     searchBooksAndDetails();
-  }, [search, page, loacation, navigate, details]);
+  }, [search, page, loacation, navigate, details, countItems]);
 
   const handleClick = () => {
     if (details) {
@@ -91,7 +91,7 @@ const Result = () => {
                 to={`/Components/search/${book.title.replace(
                   '/',
                   '%2F'
-                )}?page=${page}&details=${book.key}`}
+                )}?page=${page}&count=${countItems}&details=${book.key}`}
                 key={book.key}
                 className="book-card"
               >
